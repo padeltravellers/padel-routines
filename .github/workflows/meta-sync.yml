@@ -1,0 +1,51 @@
+name: Meta Sync Audiences
+
+# Sincroniza las audiencias de Meta desde el CRM (Google Sheet) una vez al día.
+# 17:00 ES (CEST verano) = 15:00 UTC. En invierno (CET) corre a las 16:00 ES.
+# El run programado aplica cambios (--apply). El manual es dry-run salvo apply=true.
+on:
+  schedule:
+    - cron: "0 15 * * *"
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Aplicar cambios reales a Meta (true) o dry-run (false)"
+        type: boolean
+        default: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Write Google credentials from secrets
+        env:
+          GOOGLE_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS_JSON }}
+          GOOGLE_TOKEN_JSON: ${{ secrets.GOOGLE_TOKEN_JSON }}
+        run: |
+          printf '%s' "$GOOGLE_CREDENTIALS_JSON" > credentials.json
+          printf '%s' "$GOOGLE_TOKEN_JSON" > token.json
+      - name: Run sync
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          META_AD_ACCOUNT_ID: ${{ secrets.META_AD_ACCOUNT_ID }}
+          META_APP_ID: ${{ secrets.META_APP_ID }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+          META_PAGE_ID: ${{ secrets.META_PAGE_ID }}
+          META_INSTAGRAM_BUSINESS_ACCOUNT_ID: ${{ secrets.META_INSTAGRAM_BUSINESS_ACCOUNT_ID }}
+          META_PIXEL_ID: ${{ secrets.META_PIXEL_ID }}
+          META_PRIVACY_POLICY_URL: ${{ secrets.META_PRIVACY_POLICY_URL }}
+          META_AUTO_CONFIRM: "1"
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.apply }}" = "true" ]; then
+            echo "Running with --apply"
+            python meta_sync_audiences.py --apply
+          else
+            echo "Running dry-run"
+            python meta_sync_audiences.py
+          fi

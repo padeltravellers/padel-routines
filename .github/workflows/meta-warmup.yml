@@ -1,0 +1,30 @@
+name: Meta Warmup
+
+# Calienta la cuenta de Meta acumulando llamadas a la API (4x/día).
+# Horas UTC = horas ES (CEST, verano UTC+2): 08:13 → 06:13, 13:07 → 11:07,
+# 18:23 → 16:23, 22:41 → 20:41. En invierno (CET) corre 1h más tarde en ES.
+on:
+  schedule:
+    - cron: "13 6 * * *"
+    - cron: "7 11 * * *"
+    - cron: "23 16 * * *"
+    - cron: "41 20 * * *"
+  workflow_dispatch:
+
+jobs:
+  warmup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Run warmup
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          META_AD_ACCOUNT_ID: ${{ secrets.META_AD_ACCOUNT_ID }}
+          META_APP_ID: ${{ secrets.META_APP_ID }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+        run: python meta_warmup.py

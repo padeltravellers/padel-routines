@@ -3,3 +3,9 @@ __pycache__/
 .venv/
 .env
 .DS_Store
+# credenciales — NUNCA commitear
+credentials.json
+token.json
+output/
+logs/
+*.log
