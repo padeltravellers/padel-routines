@@ -43,8 +43,10 @@ jobs:
           META_AUTO_CONFIRM: "1"
         run: |
           if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.apply }}" = "true" ]; then
-            echo "Running with --apply"
-            python meta_sync_audiences.py --apply
+            # Runner efímero: sin cache persistente → users_replace completo (--reset) cada día.
+            # Determinista y autocorrectivo: la membresía se reemplaza desde el Sheet (fuente de verdad).
+            echo "Running with --apply --reset (users_replace completo)"
+            python meta_sync_audiences.py --apply --reset
           else
             echo "Running dry-run"
             python meta_sync_audiences.py
