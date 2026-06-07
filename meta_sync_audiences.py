@@ -98,7 +98,9 @@ TOKEN_FILE = REPO_DIR / 'token.json'
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
-SCOPES = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets.readonly']
+# El token.json fue autorizado solo con scope 'drive' (suficiente para leer Sheets vía la Sheets API).
+# Pedir además 'spreadsheets.readonly' rompía el refresh con invalid_scope (scope no concedido al refresh token).
+SCOPES = ['https://www.googleapis.com/auth/drive']
 
 
 # ============ LOG ============
